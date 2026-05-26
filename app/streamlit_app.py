@@ -1,5 +1,7 @@
 from pathlib import Path
 import sys
+import urllib.request
+import zipfile
 
 import streamlit as st
 
@@ -9,13 +11,32 @@ sys.path.append(str(ROOT_DIR))
 from src.data_loader import load_movielens_1m
 from src.recommender import HybridMovieRecommender
 
+DATA_URL = "https://files.grouplens.org/datasets/movielens/ml-1m.zip"
+DATA_DIR = ROOT_DIR / "data"
+DATASET_DIR = DATA_DIR / "ml-1m"
+ZIP_PATH = DATA_DIR / "ml-1m.zip"
 
-st.set_page_config(page_title="Movie Recommender", page_icon="🎬", layout="wide")
+st.set_page_config(page_title="Movie Recommender", layout="wide")
+
+
+def download_movielens():
+    DATA_DIR.mkdir(exist_ok=True)
+
+    if DATASET_DIR.exists():
+        return
+
+    with st.spinner("Downloading MovieLens 1M dataset..."):
+        urllib.request.urlretrieve(DATA_URL, ZIP_PATH)
+
+    with st.spinner("Extracting dataset..."):
+        with zipfile.ZipFile(ZIP_PATH, "r") as zip_ref:
+            zip_ref.extractall(DATA_DIR)
 
 
 @st.cache_data
 def load_data():
-    return load_movielens_1m(ROOT_DIR / "data")
+    download_movielens()
+    return load_movielens_1m(DATA_DIR)
 
 
 @st.cache_resource
@@ -28,14 +49,6 @@ def train_model():
 
 st.title("Hybrid Movie Recommendation System")
 st.caption("MovieLens 1M | Collaborative filtering + content-based filtering")
-
-data_path = ROOT_DIR / "data" / "ml-1m"
-if not data_path.exists():
-    st.error(
-        "MovieLens data was not found. Download ml-1m.zip from GroupLens, "
-        "extract it, and place the ml-1m folder inside the data directory."
-    )
-    st.stop()
 
 model, ratings, movies, users = train_model()
 
@@ -74,6 +87,7 @@ else:
         value=1,
         step=1,
     )
+
     collaborative_weight = st.slider(
         "Collaborative filtering weight",
         min_value=0.0,
