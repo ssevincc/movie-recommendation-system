@@ -1,13 +1,10 @@
-# %% [markdown]
 # # Hybrid Movie Recommendation System
 #
-# CV-ready baseline using MovieLens 1M:
 # - Content-based recommendation using movie genres
 # - Collaborative filtering using matrix factorization
 # - Hybrid recommendations combining both approaches
 # - Evaluation with RMSE, Precision@K, Recall@K, and NDCG@K
 
-# %%
 import os
 import zipfile
 from pathlib import Path
@@ -25,11 +22,9 @@ DATA_DIR = Path("data")
 DATASET_DIR = DATA_DIR / "ml-1m"
 
 
-# %% [markdown]
-# ## 1. Download and Extract Dataset
+# ## Download and Extract Dataset
 # In Google Colab, run this cell. The dataset is downloaded from the official GroupLens source.
 
-# %%
 if not DATASET_DIR.exists():
     DATA_DIR.mkdir(exist_ok=True)
     zip_path = DATA_DIR / "ml-1m.zip"
@@ -43,10 +38,8 @@ if not DATASET_DIR.exists():
 print("Dataset ready:", DATASET_DIR)
 
 
-# %% [markdown]
-# ## 2. Load Data
+# ## Load Data
 
-# %%
 ratings = pd.read_csv(
     DATASET_DIR / "ratings.dat",
     sep="::",
@@ -80,11 +73,8 @@ print("Movies:", movies.shape)
 print("Users:", users.shape)
 movies.head()
 
+# ## Basic EDA
 
-# %% [markdown]
-# ## 3. Basic EDA
-
-# %%
 print(ratings["rating"].describe())
 print("\nMost rated movies:")
 ratings.merge(movies, on="movie_id").groupby("title")["rating"].agg(["count", "mean"]).sort_values(
@@ -92,8 +82,7 @@ ratings.merge(movies, on="movie_id").groupby("title")["rating"].agg(["count", "m
 ).head(10)
 
 
-# %% [markdown]
-# ## 4. Content-Based Recommender
+# ## Content-Based Recommender
 # This recommends movies similar to a selected title using genres.
 
 # %%
@@ -122,8 +111,7 @@ def recommend_similar_movies(title, top_n=10):
 recommend_similar_movies("Toy Story (1995)", top_n=10)
 
 
-# %% [markdown]
-# ## 5. Collaborative Filtering with Matrix Factorization
+# ## Collaborative Filtering with Matrix Factorization
 # We create a user-movie rating matrix and use TruncatedSVD to learn latent factors.
 
 # %%
@@ -184,8 +172,7 @@ rmse = np.sqrt(mse)
 print(f"RMSE: {rmse:.4f}")
 
 
-# %% [markdown]
-# ## 6. Collaborative Recommendations
+# ## Collaborative Recommendations
 
 # %%
 def recommend_for_user(user_id, top_n=10):
@@ -284,12 +271,10 @@ def hybrid_recommend_for_user(user_id, top_n=10, collaborative_weight=0.7):
 hybrid_recommend_for_user(user_id=1, top_n=10)
 
 
-# %% [markdown]
-# ## 8. Ranking Evaluation
+# ## Ranking Evaluation
 # For recommendation systems, Precision@K, Recall@K, and NDCG@K are more useful than accuracy.
 # We treat ratings >= 4 as relevant movies.
 
-# %%
 def precision_at_k(recommended_ids, relevant_ids, k):
     recommended_k = recommended_ids[:k]
     if len(recommended_k) == 0:
@@ -352,8 +337,7 @@ ranking_metrics = evaluate_recommender(evaluation_users, k=10)
 ranking_metrics.mean(numeric_only=True)
 
 
-# %% [markdown]
-# ## 9. Search Helper for Demo
+# ## Search Helper for Demo
 
 # %%
 def search_movies(query, limit=10):
@@ -363,9 +347,7 @@ def search_movies(query, limit=10):
 
 search_movies("matrix")
 
-
-# %% [markdown]
-# ## 10. Example Outputs for README
+# ## Example Outputs
 
 # %%
 print("Content-based recommendations for Toy Story:")
